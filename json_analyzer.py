@@ -290,12 +290,13 @@ class DataPreprocessor:
         with open(self.json_file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     
-    def prepare_for_vectorization(self, output_dir: str, chunk_size: int = 500) -> None:
-        """为向量化准备数据"""
+    def prepare_for_vectorization(self, output_dir: str, chunk_size: int = 500, overlap_size: int = 100) -> None:
+        """为向量化准备数据，支持重叠分块"""
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
         logger.info(f"准备向量化数据，输出到: {output_path}")
+        logger.info(f"分块参数: chunk_size={chunk_size}, overlap_size={overlap_size}")
         
         documents = self.data.get('documents', [])
         
@@ -340,9 +341,9 @@ class DataPreprocessor:
             for section_idx, section in enumerate(sections):
                 content = section.get('content', '')
                 
-                # 分块处理长内容
+                # 分块处理长内容（支持重叠）
                 if len(content) > chunk_size:
-                    chunks = self._split_content(content, chunk_size)
+                    chunks = self._split_content_with_overlap(content, chunk_size, overlap_size)
                     for chunk_idx, chunk_text in enumerate(chunks):
                         section_chunks.append({
                             'id': f"doc_{doc_idx}_section_{section_idx}_chunk_{chunk_idx}",
@@ -397,7 +398,8 @@ class DataPreprocessor:
                 'total_doc_chunks': len(doc_chunks),
                 'total_section_chunks': len(section_chunks),
                 'total_table_chunks': len(table_chunks),
-                'chunk_size': chunk_size
+                'chunk_size': chunk_size,
+                'overlap_size': overlap_size
             }
         }
         
@@ -416,7 +418,7 @@ class DataPreprocessor:
         logger.info("数据预处理完成")
     
     def _split_content(self, content: str, chunk_size: int) -> List[str]:
-        """分割长内容"""
+        """分割长内容（简单版本，不支持重叠）"""
         chunks = []
         
         # 按段落分割
@@ -433,6 +435,109 @@ class DataPreprocessor:
         
         if current_chunk:
             chunks.append(current_chunk.strip())
+        
+        return chunks
+    
+    def _split_content_with_overlap(self, content: str, chunk_size: int, overlap_size: int) -> List[str]:
+        """分割长内容，支持重叠机制"""
+        if overlap_size >= chunk_size:
+            logger.warning(f"重叠大小 ({overlap_size}) 不应大于或等于分块大小 ({chunk_size})，自动调整为 {chunk_size // 4}")
+            overlap_size = chunk_size // 4
+        
+        # 如果重叠大小为0，使用原有的简单分块方法
+        if overlap_size == 0:
+            return self._split_content(content, chunk_size)
+        
+        chunks = []
+        content_length = len(content)
+        
+        # 如果内容长度小于chunk_size，直接返回
+        if content_length <= chunk_size:
+            return [content.strip()] if content.strip() else []
+        
+        # 计算步长（chunk_size - overlap_size）
+        step_size = chunk_size - overlap_size
+        if step_size <= 0:
+            step_size = chunk_size // 2  # 确保步长为正数
+        
+        # 按段落分割内容，保持段落完整性
+        paragraphs = content.split('\n\n')
+        
+        # 重新组合文本，记录每个字符的段落边界
+        full_text = ""
+        paragraph_boundaries = []
+        
+        for i, paragraph in enumerate(paragraphs):
+            if paragraph.strip():
+                start_pos = len(full_text)
+                full_text += paragraph.strip()
+                end_pos = len(full_text)
+                paragraph_boundaries.append((start_pos, end_pos))
+                
+                if i < len(paragraphs) - 1:  # 不是最后一个段落
+                    full_text += "\n\n"
+        
+        if not full_text.strip():
+            return []
+        
+        # 滑动窗口分块
+        start_pos = 0
+        chunk_count = 0
+        max_chunks = 1000  # 防止无限循环的安全限制
+        
+        while start_pos < len(full_text) and chunk_count < max_chunks:
+            end_pos = min(start_pos + chunk_size, len(full_text))
+            
+            # 尝试在段落边界处切分
+            best_end = end_pos
+            for boundary_start, boundary_end in paragraph_boundaries:
+                # 如果段落结束位置在我们的目标范围内，优先在此处切分
+                if start_pos < boundary_end <= end_pos and boundary_end > start_pos + chunk_size * 0.5:
+                    best_end = boundary_end
+                    break
+            
+            # 提取块
+            chunk_text = full_text[start_pos:best_end].strip()
+            
+            if chunk_text:
+                chunks.append(chunk_text)
+                chunk_count += 1
+            
+            # 计算下一个起始位置
+            if best_end >= len(full_text):
+                break
+            
+            # 确保有进展，防止无限循环
+            next_start = start_pos + step_size
+            if next_start <= start_pos:
+                next_start = start_pos + 1
+            
+            start_pos = next_start
+        
+        # 如果没有生成任何块（内容太短），直接返回原内容
+        if not chunks and content.strip():
+            chunks.append(content.strip())
+        
+        # 记录分块统计信息
+        avg_chunk_size = sum(len(chunk) for chunk in chunks) / len(chunks) if chunks else 0
+        logger.debug(f"内容长度: {len(content)}, 生成块数: {len(chunks)}, 平均块大小: {avg_chunk_size:.1f}")
+        
+        # 验证重叠效果
+        if len(chunks) > 1 and overlap_size > 0:
+            overlap_found = False
+            for i in range(len(chunks) - 1):
+                current_chunk = chunks[i]
+                next_chunk = chunks[i + 1]
+                # 检查是否有重叠内容（简单检查后面部分是否在下一个块的前面部分）
+                overlap_text = current_chunk[-min(overlap_size, len(current_chunk)//2):]
+                if overlap_text in next_chunk[:len(next_chunk)//2]:
+                    overlap_found = True
+                    break
+            
+            if overlap_found:
+                logger.debug(f"成功创建重叠分块，重叠大小: {overlap_size}")
+            else:
+                logger.debug("未检测到明显重叠，可能由于段落边界限制")
         
         return chunks
     
@@ -465,6 +570,7 @@ def main():
     parser.add_argument('--input', '-i', required=True, help='输入JSON文件路径')
     parser.add_argument('--output', '-o', required=True, help='输出目录路径')
     parser.add_argument('--chunk-size', type=int, default=500, help='向量化分块大小')
+    parser.add_argument('--overlap-size', type=int, default=100, help='分块重叠大小')
     
     args = parser.parse_args()
     
@@ -475,10 +581,11 @@ def main():
     
     # 准备向量化数据
     preprocessor = DataPreprocessor(args.input)
-    preprocessor.prepare_for_vectorization(args.output, args.chunk_size)
+    preprocessor.prepare_for_vectorization(args.output, args.chunk_size, args.overlap_size)
     
     print("数据分析和预处理完成!")
     print(f"分析结果保存在: {args.output}")
+    print(f"分块参数: chunk_size={args.chunk_size}, overlap_size={args.overlap_size}")
 
 if __name__ == '__main__':
     main()

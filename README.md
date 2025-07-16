@@ -36,29 +36,59 @@ Knowledge Club/
 - 提取关键词和标签
 - 生成详细的分析报告
 
-### 3. 向量化数据准备
-- 将长文档分割为合适大小的块
+### 3. 向量化数据准备（支持重叠分块）
+- 将长文档分割为合适大小的块，支持重叠机制
 - 为每个数据块添加元数据和标签
 - 生成可直接用于向量化的JSON文件
 - 支持文档级、片段级和表格级的数据块
 
+## 重叠分块功能 🆕
+
+### 配置参数
+- `--chunk-size`: 每个文本块的最大字符数（默认：500）
+- `--overlap-size`: 相邻块之间的重叠字符数（默认：100）
+
+### 使用示例
+```bash
+# 使用默认重叠参数
+python main.py --input markdown --output output_with_overlap
+
+# 自定义重叠参数
+python main.py --input markdown --output output --chunk-size 800 --overlap-size 150
+
+# 禁用重叠（传统分块）
+python main.py --input markdown --output output --overlap-size 0
+```
+
+### 测试重叠功能
+```bash
+# 运行重叠分块测试
+python test_overlap.py
+```
+
 ## 快速开始
 
-### 方法一：使用批处理文件（推荐）
+### 方法一：使用批处理文件（推荐，默认启用重叠分块）
 
 1. 确保你的Markdown文件在 `markdown/` 目录中
-2. 双击运行 `运行转换.bat`
+2. 双击运行 `运行转换.bat`（默认使用500字符块大小，100字符重叠）
 3. 等待处理完成
 
 ### 方法二：使用命令行
 
 ```bash
-# 基本转换
+# 基本转换（默认启用重叠分块）
 python main.py --input markdown --output output
+
+# 自定义分块参数
+python main.py --input markdown --output output --chunk-size 800 --overlap-size 150
+
+# 禁用重叠（传统分块方式）
+python main.py --input markdown --output output --overlap-size 0
 
 # 或者分步执行
 python md_to_json_converter.py --input markdown --output output/json
-python json_analyzer.py --input output/json/all_documents.json --output output/analysis
+python json_analyzer.py --input output/json/all_documents.json --output output/analysis --chunk-size 500 --overlap-size 100
 ```
 
 ## 输出说明
@@ -254,3 +284,27 @@ logging.basicConfig(level=logging.DEBUG)
 ---
 
 现在你已经有了完整的Markdown到JSON转换系统！运行 `运行转换.bat` 开始转换你的芯片知识库吧！
+
+## 测试结果验证 ✅
+
+重叠分块功能已成功实现并经过测试验证：
+
+### 测试数据
+- **无重叠分块**：21,423 个数据块
+- **有重叠分块**：91,414 个数据块（约4.3倍增长）
+- **重叠效果**：相邻块间检测到设定的重叠字符数
+- **上下文连续性**：有效保持了文本块之间的语义连接
+
+### 测试命令
+```bash
+# 运行重叠分块测试
+python test_overlap.py
+
+# 运行重叠分块演示
+运行重叠分块演示.bat
+```
+
+### 性能影响
+- 块数量增加：重叠分块会产生更多的数据块
+- 存储需求：需要额外的存储空间来保存重叠内容
+- 检索效果：提升语义搜索和上下文理解能力

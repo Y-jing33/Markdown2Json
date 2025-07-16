@@ -5,12 +5,16 @@ echo 芯片知识库 Markdown 到 JSON 转换工具
 echo ========================================
 echo.
 
-REM 设置路径
+REM 设置路径和参数
 set INPUT_DIR=markdown
-set OUTPUT_DIR=output
+set OUTPUT_DIR=output_with_overlap
+set CHUNK_SIZE=500
+set OVERLAP_SIZE=100
 
 echo 输入目录: %INPUT_DIR%
 echo 输出目录: %OUTPUT_DIR%
+echo 分块大小: %CHUNK_SIZE% 字符
+echo 重叠大小: %OVERLAP_SIZE% 字符
 echo.
 
 REM 检查输入目录是否存在
@@ -24,8 +28,8 @@ if not exist "%INPUT_DIR%" (
 echo 开始转换处理...
 echo.
 
-REM 运行Python脚本
-python main.py --input "%INPUT_DIR%" --output "%OUTPUT_DIR%"
+REM 运行Python脚本，支持重叠分块
+python main.py --input "%INPUT_DIR%" --output "%OUTPUT_DIR%" --chunk-size %CHUNK_SIZE% --overlap-size %OVERLAP_SIZE%
 
 if %ERRORLEVEL% EQU 0 (
     echo.
