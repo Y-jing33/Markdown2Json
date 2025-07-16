@@ -4,6 +4,10 @@ output/
 # 忽略markdown源文件目录和所有内容
 markdown/
 
+# 忽略临时文件和缓存
+temp/
+model_cache/
+
 # Python相关文件
 __pycache__/
 *.py[cod]

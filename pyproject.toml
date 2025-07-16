@@ -9,4 +9,12 @@ dependencies = [
     "numpy>=2.3.1",
     "pandas>=2.3.1",
     "scikit-learn>=1.7.0",
+    "sentence-transformers>=3.0.0",
+    "transformers>=4.40.0",
+    "torch>=2.0.0",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "torch[cuda]>=2.0.0",
 ]
