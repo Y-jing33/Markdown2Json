@@ -44,17 +44,17 @@ pip install -r requirements.txt
 
 1. **转换Markdown到JSON**：
 ```bash
-python main.py
+uv run main.py
 ```
 
 1.1 **含参转化（参数可修改）**
 ```bash
-python main.py --input markdown --output output --chunk-size 800 --overlap-size 150
+uv run main.py --input markdown --output output --chunk-size 800 --overlap-size 150
 ```
 
 2. **增强向量化处理**：
 ```bash
-python enhanced_main.py
+uv run enhanced_main.py
 ```
 
 2.1 **使用不同model实现**
@@ -66,7 +66,7 @@ uv run enhanced_main.py --action vectorize --model-type tfidf
 ```
 3. **语义搜索测试**
 ```bash
-python semantic_search.py --query "PWM控制器" --top-k 10
+uv run semantic_search.py --embedding-dir "output/enhanced_embeddings" --query "PWM控制器" --top-k 10
 ```
 
 或者使用批处理文件：
