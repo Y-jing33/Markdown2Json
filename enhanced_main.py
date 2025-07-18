@@ -91,7 +91,7 @@ def run_enhanced_vectorization(input_file: str, output_dir: str, model_type: str
         # 创建配置
         config = EmbeddingConfig(
             model_type=model_type,
-            device="cpu",  # 默认使用CPU，如果需要GPU可以改为"cuda"
+            device="cuda",  # 默认使用CPU，如果需要GPU可以改为"cuda"
             batch_size=16  # 减小批处理大小以适应CPU
         )
         
