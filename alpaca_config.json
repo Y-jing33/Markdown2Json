@@ -1,0 +1,94 @@
+{
+  "dataset_config": {
+    "max_qa_samples": 5000,
+    "max_instruction_samples": 3000,
+    "min_content_length": 20,
+    "output_dir": "output/alpaca_dataset",
+    "shuffle_dataset": true
+  },
+  "instruction_templates": {
+    "qa_basic": [
+      "回答关于{chip_category}系列芯片的问题",
+      "解释{chip_category}芯片的相关内容",
+      "提供{chip_category}产品的技术信息",
+      "根据文档内容回答问题"
+    ],
+    "technical": [
+      "解释{chip_category}芯片的技术特性",
+      "说明{chip_category}系列的工作原理",
+      "描述{chip_category}产品的功能特点",
+      "详细介绍{chip_category}芯片的规格参数"
+    ],
+    "application": [
+      "提供{chip_category}芯片的应用指导",
+      "说明{chip_category}产品的使用方法",
+      "解释{chip_category}芯片的配置步骤",
+      "指导{chip_category}产品的开发应用"
+    ],
+    "troubleshooting": [
+      "解决{chip_category}芯片的常见问题",
+      "诊断{chip_category}产品的故障现象",
+      "提供{chip_category}芯片的故障排除方案",
+      "分析{chip_category}产品的异常情况"
+    ],
+    "selection": [
+      "帮助选择合适的{chip_category}芯片型号",
+      "比较{chip_category}系列产品的差异",
+      "推荐适合的{chip_category}芯片方案",
+      "分析{chip_category}产品的选型要点"
+    ],
+    "datasheet": [
+      "解读{chip_category}芯片的数据手册内容",
+      "说明{chip_category}产品的电气特性",
+      "解释{chip_category}芯片的管脚定义",
+      "描述{chip_category}产品的封装信息"
+    ]
+  },
+  "question_patterns": {
+    "工作模式": [
+      "{chip_category}芯片有哪些工作模式？",
+      "如何配置{chip_category}的工作模式？",
+      "{chip_category}的工作模式有什么特点？"
+    ],
+    "寄存器": [
+      "{chip_category}芯片的寄存器如何配置？",
+      "详细说明{chip_category}的寄存器功能",
+      "{chip_category}寄存器的设置方法是什么？"
+    ],
+    "引脚": [
+      "{chip_category}芯片的引脚定义是什么？",
+      "如何使用{chip_category}的引脚功能？",
+      "{chip_category}的引脚配置方法？"
+    ],
+    "中断": [
+      "{chip_category}芯片的中断如何处理？",
+      "{chip_category}中断系统的工作原理？",
+      "如何配置{chip_category}的中断功能？"
+    ],
+    "定时器": [
+      "{chip_category}芯片的定时器如何使用？",
+      "{chip_category}定时器的配置方法？",
+      "如何设置{chip_category}的定时器功能？"
+    ],
+    "ADC": [
+      "{chip_category}芯片的ADC功能如何使用？",
+      "{chip_category}的ADC配置方法？",
+      "如何优化{chip_category}的ADC性能？"
+    ],
+    "PWM": [
+      "{chip_category}芯片的PWM功能如何实现？",
+      "{chip_category}的PWM配置步骤？",
+      "如何调节{chip_category}的PWM输出？"
+    ]
+  },
+  "filtering_rules": {
+    "exclude_patterns": [
+      "^[·•\\-\\s]*$",
+      "^[\\d\\s\\.\\-\\+]+$",
+      "^\\s*$"
+    ],
+    "include_keywords": [
+      "芯片", "寄存器", "引脚", "配置", "功能", "模式", "中断", "定时器", "ADC", "PWM"
+    ]
+  }
+}
