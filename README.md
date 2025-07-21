@@ -42,7 +42,7 @@ pip install -r requirements.txt
 
 ### 基本使用
 
-1. **转换Markdown到JSON**：
+1. **转换Markdown到JSON（md2json → json analysis → 基础向量化）**：
 ```bash
 uv run main.py
 ```
@@ -52,7 +52,7 @@ uv run main.py
 uv run main.py --input markdown --output output --chunk-size 800 --overlap-size 150
 ```
 
-2. **增强向量化处理**：
+2. **增强向量化处理（添设高级索引）**：
 ```bash
 uv run enhanced_main.py
 ```
@@ -64,9 +64,17 @@ uv run enhanced_main.py --action vectorize --model-type sentence_transformers
 # TF-IDF
 uv run enhanced_main.py --action vectorize --model-type tfidf
 ```
-3. **语义搜索测试**
+3. **语义搜索测试（可选）**
 ```bash
 uv run semantic_search.py --embedding-dir "output/enhanced_embeddings" --query "PWM控制器" --top-k 10
+```
+4. **指令集构建**
+```bash
+uv run alpaca_dataset_builder.py
+```
+5. **增强整合数据集构建**
+```bash
+uv run configurable_integration_dataset_builder.py
 ```
 
 或者使用批处理文件：

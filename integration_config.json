@@ -1,0 +1,121 @@
+{
+  "dataset_config": {
+    "max_samples": 1000,
+    "task_distribution": {
+      "comparison": 0.25,
+      "synthesis": 0.30,
+      "analysis": 0.25,
+      "reasoning": 0.20
+    },
+    "difficulty_distribution": {
+      "basic": 0.20,
+      "intermediate": 0.50,
+      "advanced": 0.30
+    }
+  },
+  
+  "integration_requirements": {
+    "min_context_length": 500,
+    "max_context_length": 8000,
+    "min_chunks_per_task": 2,
+    "max_chunks_per_task": 6,
+    "similarity_threshold": 0.6
+  },
+  
+  "task_templates": {
+    "comparison": {
+      "focus_areas": [
+        "技术架构对比",
+        "性能指标比较", 
+        "功能特性分析",
+        "应用场景适配",
+        "成本效益评估",
+        "技术成熟度评估"
+      ],
+      "complexity_levels": {
+        "basic": "单一维度对比",
+        "intermediate": "多维度综合对比",
+        "advanced": "深度技术原理对比"
+      }
+    },
+    
+    "synthesis": {
+      "solution_types": [
+        "系统架构设计",
+        "技术方案整合",
+        "产品开发策略",
+        "应用场景优化",
+        "技术路线规划",
+        "集成方案设计"
+      ],
+      "complexity_levels": {
+        "basic": "简单功能整合",
+        "intermediate": "模块化系统设计", 
+        "advanced": "复杂系统架构设计"
+      }
+    },
+    
+    "analysis": {
+      "analysis_dimensions": [
+        "技术原理深度分析",
+        "实现机制解析",
+        "设计理念阐述",
+        "技术演进分析",
+        "性能瓶颈分析",
+        "优化策略研究"
+      ],
+      "complexity_levels": {
+        "basic": "单一技术点分析",
+        "intermediate": "技术关联性分析",
+        "advanced": "系统性技术洞察"
+      }
+    },
+    
+    "reasoning": {
+      "problem_categories": [
+        "故障诊断与排除",
+        "性能优化策略",
+        "技术选型决策",
+        "风险评估与控制",
+        "技术演进预测",
+        "解决方案评估"
+      ],
+      "complexity_levels": {
+        "basic": "直接因果推理",
+        "intermediate": "多因素综合推理",
+        "advanced": "复杂系统推理"
+      }
+    }
+  },
+  
+  "quality_criteria": {
+    "context_coherence": {
+      "description": "上下文信息的连贯性和相关性",
+      "weight": 0.25
+    },
+    "integration_depth": {
+      "description": "信息整合的深度和完整性", 
+      "weight": 0.30
+    },
+    "reasoning_logic": {
+      "description": "推理逻辑的清晰性和严谨性",
+      "weight": 0.25
+    },
+    "practical_value": {
+      "description": "实际应用价值和可操作性",
+      "weight": 0.20
+    }
+  },
+  
+  "output_format": {
+    "alpaca_format": true,
+    "include_metadata": true,
+    "metadata_fields": [
+      "task_type",
+      "difficulty",
+      "integration_points",
+      "context_sources",
+      "quality_score"
+    ]
+  }
+}

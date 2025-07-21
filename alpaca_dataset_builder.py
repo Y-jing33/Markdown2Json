@@ -59,25 +59,25 @@ class AlpacaDatasetBuilder:
         return {
             # 基础问答类
             "qa_basic": [
-                "回答关于{chip_category}系列芯片的问题",
+                "回答关于{chip_category}芯片的问题",
                 "解释{chip_category}芯片的相关内容",
                 "提供{chip_category}产品的技术信息",
-                "根据文档内容回答问题",
+                "根据技术文档回答问题",
             ],
             
             # 技术说明类
             "technical": [
-                "解释{chip_category}芯片的技术特性",
-                "说明{chip_category}系列的工作原理",
+                "说明{chip_category}芯片的技术特性",
+                "解释{chip_category}系列的工作原理",
                 "描述{chip_category}产品的功能特点",
-                "详细介绍{chip_category}芯片的规格参数",
+                "介绍{chip_category}芯片的规格参数",
             ],
             
             # 应用指导类
             "application": [
                 "提供{chip_category}芯片的应用指导",
                 "说明{chip_category}产品的使用方法",
-                "解释{chip_category}芯片的配置步骤",
+                "解释{chip_category}芯片的配置方法",
                 "指导{chip_category}产品的开发应用",
             ],
             
@@ -103,6 +103,14 @@ class AlpacaDatasetBuilder:
                 "说明{chip_category}产品的电气特性",
                 "解释{chip_category}芯片的管脚定义",
                 "描述{chip_category}产品的封装信息",
+            ],
+            
+            # 信息整合类（新增）
+            "integration": [
+                "综合分析{chip_category}芯片的多项技术特性",
+                "整合{chip_category}产品的技术文档信息",
+                "基于多个技术资料分析{chip_category}芯片的优势",
+                "结合技术手册和应用指导，全面介绍{chip_category}产品",
             ]
         }
     
@@ -124,97 +132,117 @@ class AlpacaDatasetBuilder:
             return "qa_basic"
     
     def _generate_question_from_content(self, content: str, metadata: Dict[str, Any]) -> str:
-        """根据内容生成问题"""
+        """根据内容生成与答案匹配的问题"""
         chip_category = metadata.get("chip_category", "芯片")
         doc_type = metadata.get("document_type", "")
         
-        # 提取关键信息生成问题
+        # 分析内容的主要特征，生成对应的问题
         questions = []
         
-        # 基于内容特征生成问题
-        if "工作模式" in content or "operating mode" in content.lower():
+        # 基于实际内容特征生成问题
+        if "PWM" in content and ("位编号" in content or "寄存器" in content):
             questions.extend([
-                f"{chip_category}芯片有哪些工作模式？",
-                f"如何配置{chip_category}的工作模式？",
-                f"{chip_category}的工作模式有什么特点？"
+                f"{chip_category}芯片的PWM寄存器有哪些位字段？",
+                f"如何配置{chip_category}的PWM相关寄存器？",
+                f"{chip_category}的PWM寄存器各位功能是什么？"
             ])
-        
-        if "寄存器" in content or "register" in content.lower():
+        elif "寄存器" in content and ("位" in content or "bit" in content.lower()):
             questions.extend([
-                f"{chip_category}芯片的寄存器如何配置？",
-                f"详细说明{chip_category}的寄存器功能",
-                f"{chip_category}寄存器的设置方法是什么？"
+                f"{chip_category}芯片寄存器的位定义是什么？",
+                f"详细说明{chip_category}寄存器各位的功能",
+                f"如何理解{chip_category}的寄存器配置？"
             ])
-        
-        if "引脚" in content or "pin" in content.lower() or "管脚" in content:
+        elif "ADC" in content and ("采样" in content or "转换" in content):
             questions.extend([
-                f"{chip_category}芯片的引脚定义是什么？",
-                f"如何使用{chip_category}的引脚功能？",
-                f"{chip_category}的引脚配置方法？"
+                f"{chip_category}芯片的ADC采样时间是多少？",
+                f"{chip_category}的ADC转换特性如何？",
+                f"如何配置{chip_category}的ADC功能？"
             ])
-        
-        if "中断" in content or "interrupt" in content.lower():
+        elif "复位" in content and ("电路" in content or "方式" in content):
             questions.extend([
-                f"{chip_category}芯片的中断如何处理？",
-                f"{chip_category}中断系统的工作原理？",
-                f"如何配置{chip_category}的中断功能？"
+                f"{chip_category}芯片有哪些复位方式？",
+                f"{chip_category}的复位电路是如何工作的？",
+                f"如何理解{chip_category}的复位机制？"
             ])
-        
-        if "定时器" in content or "timer" in content.lower():
+        elif "引脚" in content or "管脚" in content or "pin" in content.lower():
             questions.extend([
-                f"{chip_category}芯片的定时器如何使用？",
-                f"{chip_category}定时器的配置方法？",
-                f"如何设置{chip_category}的定时器功能？"
+                f"{chip_category}芯片的引脚功能定义是什么？",
+                f"如何理解{chip_category}的管脚配置？",
+                f"{chip_category}芯片各引脚的作用是什么？"
             ])
-        
-        if "ADC" in content or "模数转换" in content:
+        elif "工作模式" in content or "mode" in content.lower():
             questions.extend([
-                f"{chip_category}芯片的ADC功能如何使用？",
-                f"{chip_category}的ADC配置方法？",
-                f"如何优化{chip_category}的ADC性能？"
+                f"{chip_category}芯片支持哪些工作模式？",
+                f"如何切换{chip_category}的工作模式？",
+                f"{chip_category}芯片各工作模式的特点是什么？"
             ])
-        
-        if "PWM" in content:
+        elif "中断" in content or "interrupt" in content.lower():
             questions.extend([
-                f"{chip_category}芯片的PWM功能如何实现？",
-                f"{chip_category}的PWM配置步骤？",
-                f"如何调节{chip_category}的PWM输出？"
+                f"{chip_category}芯片的中断机制是怎样的？",
+                f"如何配置{chip_category}的中断功能？",
+                f"{chip_category}芯片支持哪些中断类型？"
+            ])
+        elif "定时器" in content or "timer" in content.lower():
+            questions.extend([
+                f"{chip_category}芯片的定时器功能如何使用？",
+                f"如何配置{chip_category}的定时器？",
+                f"{chip_category}芯片定时器的特性是什么？"
+            ])
+        elif "电气特性" in content or "参数" in content:
+            questions.extend([
+                f"{chip_category}芯片的电气参数是什么？",
+                f"{chip_category}芯片有哪些技术规格？",
+                f"如何理解{chip_category}的电气特性？"
+            ])
+        elif "封装" in content or "package" in content.lower():
+            questions.extend([
+                f"{chip_category}芯片有哪些封装形式？",
+                f"{chip_category}芯片的封装规格是什么？",
+                f"如何选择{chip_category}芯片的封装类型？"
             ])
         
         # 基于文档类型生成问题
         if "troubleshooting" in doc_type.lower():
             questions.extend([
-                f"{chip_category}芯片常见故障如何解决？",
-                f"{chip_category}产品的故障诊断方法？",
-                f"如何排除{chip_category}的使用问题？"
+                f"{chip_category}芯片出现问题时如何排查？",
+                f"{chip_category}芯片常见故障的解决方法？",
+                f"如何诊断{chip_category}芯片的问题？"
             ])
-        
-        if "selection" in doc_type.lower():
+        elif "selection" in doc_type.lower():
             questions.extend([
                 f"如何选择合适的{chip_category}芯片型号？",
-                f"{chip_category}系列产品有什么差异？",
-                f"推荐的{chip_category}芯片应用方案？"
+                f"{chip_category}系列芯片的选型要点是什么？",
+                f"{chip_category}芯片选型时需要考虑哪些因素？"
+            ])
+        elif "datasheet" in doc_type.lower():
+            questions.extend([
+                f"{chip_category}芯片的技术规格说明？",
+                f"如何理解{chip_category}芯片的数据手册？",
+                f"{chip_category}芯片的详细技术参数？"
             ])
         
-        # 通用问题
+        # 如果没有找到特定问题，生成通用问题
         if not questions:
             questions.extend([
-                f"关于{chip_category}芯片的详细信息？",
-                f"{chip_category}产品的技术特性？",
-                f"如何使用{chip_category}芯片？",
-                f"{chip_category}的功能特点是什么？"
+                f"请介绍{chip_category}芯片的相关信息",
+                f"{chip_category}芯片的技术特点是什么？",
+                f"关于{chip_category}芯片的技术说明",
+                f"如何理解{chip_category}芯片的功能？"
             ])
         
         return random.choice(questions)
     
     def _clean_content(self, content: str) -> str:
         """清理文本内容"""
+        if not content:
+            return None
+            
         # 移除HTML表格属性
         content = re.sub(r'colspan="?\d+"?', '', content)
         content = re.sub(r'rowspan="?\d+"?', '', content)
         
         # 移除HTML标签
-        content = re.sub(r'<[^>]+>', '', content)
+        content = re.sub(r'<[^>]*>', '', content)
         
         # 移除表格分隔符和特殊字符
         content = re.sub(r'</?(td|tr|table|th|thead|tbody)[^>]*>', '', content)
@@ -243,15 +271,25 @@ class AlpacaDatasetBuilder:
         # 移除多余的标点符号
         content = re.sub(r'[·•]{2,}', '·', content)
         
+        # 移除无意义的HTML残留
+        content = re.sub(r'</?[a-zA-Z][^>]*>', '', content)
+        content = re.sub(r'&[a-zA-Z]+;', '', content)  # 移除HTML实体
+        
         # 处理表格数据格式
         content = self._format_table_content(content)
         
         # 英文术语中文化处理
         content = self._localize_technical_terms(content)
         
-        # 确保内容不为空
-        if not content or len(content.strip()) < 10:
+        # 移除过长的无意义重复字符
+        content = re.sub(r'(-{3,}|={3,}|_{3,})', '', content)
+        
+        # 确保内容不为空且有意义
+        if not content or len(content.strip()) < 15:
             return None
+            
+        # 移除开头和结尾的多余符号
+        content = content.strip('- \t\n·•')
         
         return content.strip()
     
@@ -418,6 +456,7 @@ class AlpacaDatasetBuilder:
         if self._is_mainly_english(chinese_content):
             return self._generate_chinese_description(chinese_content, chip_category, doc_type)
         
+        # 直接返回清理后的内容，不添加模板格式
         return chinese_content
     
     def _is_mainly_english(self, content: str) -> bool:
@@ -440,7 +479,7 @@ class AlpacaDatasetBuilder:
         
         # 检测技术特性
         if re.search(r'built.?in.*CRC', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片内置硬件CRC校验模块")
+            features.append(f"内置硬件CRC校验模块")
         
         if re.search(r'configurable.*initial.*value', content, re.IGNORECASE):
             features.append("支持可配置的初始值设置")
@@ -455,51 +494,38 @@ class AlpacaDatasetBuilder:
             features.append("具有可编程多项式功能")
         
         if re.search(r'register.*configuration', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片通过寄存器进行配置管理")
+            features.append("通过寄存器进行配置管理")
         
         if re.search(r'pin.*definition|pin.*function', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片具有明确的管脚定义和功能分配")
+            features.append("具有明确的管脚定义和功能分配")
         
         if re.search(r'operating.*mode', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片支持多种工作模式")
+            features.append("支持多种工作模式")
         
         if re.search(r'interrupt.*handling', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片具备完善的中断处理机制")
+            features.append("具备完善的中断处理机制")
         
         # ADC相关特性检测
         if re.search(r'ADC.*采样时间|sampling.*time', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片ADC模块支持可配置的采样时间")
+            features.append("ADC模块支持可配置的采样时间")
         
         if re.search(r'ADC.*转换时间|conversion.*time', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片ADC具有固定的转换时间")
+            features.append("ADC具有固定的转换时间")
         
         if re.search(r'ADCEN|ADC.*启动|ADC.*enable', content, re.IGNORECASE):
-            features.append(f"{chip_category}芯片ADC模块具有电源控制功能")
-        
-        # 根据文档类型生成描述
-        if "datasheet" in doc_type.lower():
-            description = f"根据{chip_category}芯片的技术规格书，"
-        elif "troubleshooting" in doc_type.lower():
-            description = f"针对{chip_category}芯片的故障排除，"
-        elif "selection" in doc_type.lower():
-            description = f"在{chip_category}芯片选型时，"
-        else:
-            description = f"{chip_category}芯片"
+            features.append("ADC模块具有电源控制功能")
         
         # 组合特性描述
         if features:
-            if len(features) == 1:
-                description += features[0] + "。"
-            else:
-                description += "主要特性包括：" + "；".join(features) + "。"
+            description = "主要特性包括：" + "、".join(features) + "。"
         else:
             # 通用技术描述
-            description += f"具有先进的技术特性和可靠的性能表现，适用于各种工业和消费电子应用场景。"
+            description = f"{chip_category}芯片具有先进的技术特性和可靠的性能表现，适用于各种工业和消费电子应用场景。"
         
         # 添加具体的技术参数（如果能提取到）
         technical_params = self._extract_technical_parameters(content)
         if technical_params:
-            description += f"主要技术参数：{technical_params}"
+            description += f" 主要技术参数：{technical_params}。"
         
         return description
     
@@ -558,7 +584,7 @@ class AlpacaDatasetBuilder:
         content = chunk.get("text", "")
         
         # 过滤过短的内容
-        if len(content.strip()) < 20:
+        if len(content.strip()) < 30:
             return False
         
         # 过滤纯符号或无意义内容
@@ -566,7 +592,22 @@ class AlpacaDatasetBuilder:
             return False
         
         # 过滤纯数字或代码
-        if re.match(r'^[\d\s\.\-\+]+$', content.strip()):
+        if re.match(r'^[\d\s\.\-\+]*$', content.strip()):
+            return False
+            
+        # 过滤主要是HTML标签的内容
+        if content.count('<') > len(content) / 10:
+            return False
+            
+        # 过滤表格标题行或空行
+        if re.match(r'^(序号|编号|说明|功能|参数|特性|型号)\s*$', content.strip()):
+            return False
+        
+        # 确保内容有实际的技术信息
+        technical_keywords = ['芯片', '寄存器', '引脚', '管脚', 'PWM', 'ADC', '中断', '定时器', 
+                            '工作模式', '电路', '功能', '配置', '特性', '参数']
+        
+        if not any(keyword in content for keyword in technical_keywords):
             return False
         
         return True
@@ -682,25 +723,39 @@ class AlpacaDatasetBuilder:
             # 生成中文化的输出内容
             chinese_output = self._generate_chinese_response(content, metadata)
             
-            # 生成复合指令
+            # 根据内容生成具体的、有针对性的指令
             chip_category = metadata.get("chip_category", "芯片")
             doc_type = metadata.get("document_type", "")
             
             # 根据内容生成具体指令
-            if "工作模式" in content:
-                instruction = f"详细说明{chip_category}芯片的工作模式及其配置方法"
-            elif "寄存器" in content:
-                instruction = f"解释{chip_category}芯片相关寄存器的功能和设置方法"
+            if "PWM" in content and "寄存器" in content:
+                instruction = f"详细说明{chip_category}芯片PWM相关寄存器的位定义和功能"
+            elif "寄存器" in content and ("位" in content or "配置" in content):
+                instruction = f"解释{chip_category}芯片寄存器的配置方法和各位功能"
             elif "引脚" in content or "管脚" in content:
-                instruction = f"介绍{chip_category}芯片的引脚定义和使用方法"
+                instruction = f"介绍{chip_category}芯片的引脚定义和功能分配"
+            elif "ADC" in content and ("采样" in content or "转换" in content):
+                instruction = f"说明{chip_category}芯片ADC模块的工作特性和配置方法"
+            elif "复位" in content and "电路" in content:
+                instruction = f"解释{chip_category}芯片的复位电路和复位方式"
             elif "中断" in content:
-                instruction = f"说明{chip_category}芯片的中断处理机制"
+                instruction = f"说明{chip_category}芯片的中断处理机制和配置方法"
+            elif "定时器" in content or "timer" in content.lower():
+                instruction = f"介绍{chip_category}芯片定时器功能的使用方法"
+            elif "工作模式" in content:
+                instruction = f"说明{chip_category}芯片支持的各种工作模式"
+            elif "电气特性" in content or "参数" in content:
+                instruction = f"提供{chip_category}芯片的电气特性和技术参数"
+            elif "封装" in content:
+                instruction = f"介绍{chip_category}芯片的封装形式和规格"
             elif "troubleshooting" in doc_type.lower():
-                instruction = f"提供{chip_category}芯片的故障排除指导"
+                instruction = f"提供{chip_category}芯片的故障排除指导和解决方案"
             elif "selection" in doc_type.lower():
-                instruction = f"指导{chip_category}芯片的选型要点"
+                instruction = f"指导{chip_category}芯片的选型要点和选择方法"
+            elif "datasheet" in doc_type.lower():
+                instruction = f"解读{chip_category}芯片数据手册中的技术规格"
             else:
-                instruction = f"介绍{chip_category}芯片的技术特性和应用方法"
+                instruction = f"介绍{chip_category}芯片的技术特性和功能"
             
             # 创建Alpaca条目（无input）
             entry = AlpacaEntry(
